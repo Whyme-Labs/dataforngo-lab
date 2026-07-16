@@ -1,13 +1,27 @@
 # DataForNGO Lab — Insight Engine
 
-> A self-evolving operations-intelligence engine for NGOs. Picks a beneficiary
-> segment, answers a plain-language "why is this underperforming / what should we
-> do?" question, and returns a governed, decision-ready insight — with a PDPA-safe
+> A self-evolving operations-intelligence engine for NGOs. Pick a beneficiary
+> segment, ask a plain-language *"why is this underperforming / what should we
+> do?"* question, and get a governed, decision-ready insight — with a PDPA-safe
 > gate that blocks any publish that could re-identify a person.
 >
 > Built for the **InfiniSynapse × CSDN "Vibe Coding" Pan-Data Analysis App Dev Contest**.
 
 **Live demo:** https://dataforngo-lab.swmengappdev.workers.dev
+**Source:** https://github.com/Whyme-Labs/dataforngo-lab
+
+---
+
+## What you'll see
+
+| | |
+|---|---|
+| Insight card (allowed, n ≥ k) | `screenshot-allow.png` |
+| k-anonymity block (n < k) | `screenshot-kanon-block.png` |
+| Consent / purpose-limitation block | `screenshot-consent-block.png` |
+| InfiniSynapse narration | `screenshot-narration.png` |
+
+Demo video (80s, kinetic walkthrough): posted on [X](https://x.com/wms2537/status/2077721624074465779).
 
 ---
 
@@ -32,6 +46,16 @@ and PII redaction, then exports a PDPA-safe, audit-traced card. Approved
 recommendations evolve a **cross-tenant learned playbook** — the durable, reusable
 asset that gets stronger the more organisations use it.
 
+## How a request flows
+
+1. Officer selects a beneficiary segment + asks a question in the UI.
+2. The **local engine** (Rust→WASM, in-edge) runs diagnosis → Monte-Carlo simulation
+   → holdout validation → valuation. No personal data leaves the engine.
+3. Optionally, **Generate narration (Infini)** calls InfiniSynapse **server-side only**,
+   behind the PII gate, for a plain-language SEA-benchmarked briefing.
+4. The **GOVERN gate** checks k-anonymity / consent / PII before any publish.
+5. On approval, the **learned playbook** (versioned + audited Durable Object) evolves.
+
 ## Features
 
 - **Nested insight graph** — diagnosis → simulation → recommendation in one card.
@@ -42,8 +66,8 @@ asset that gets stronger the more organisations use it.
   Exports a clean `redacted_card` + full audit trail.
 - **Self-evolving playbook** — versioned + audited in a Durable Object
   (`PlaybookStore`, SQLite-backed, free-plan friendly). Reset restores v1.
-- **InfiniSynapse integration** — server-side calls to InfiniSynapse supply the
-  external research / benchmark / narration layer (see below).
+- **InfiniSynapse integration** — server-side calls supply the external research /
+  benchmark / narration layer (see below).
 
 ## Architecture
 

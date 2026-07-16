@@ -1,11 +1,12 @@
 # DataForNGO Lab — InfiniSynapse Vibe Coding Contest Submission
 
-> Status: **READY TO SUBMIT.** The InfiniSynapse API Key was created via the console UI
+> Status: **SUBMITTED (2026-07-16).** The InfiniSynapse API Key was created via the console UI
 > and set as a `wrangler` secret; the integration is realigned to the **verified** Server
 > API (`app.infinisynapse.cn/api/ai/message` + poll) and **verified live** (2026-07-16):
 > insight → "Generate narration (Infini)" → clean SEA-benchmarked briefing, logged as an
-> API-key call. Public URL is deployed. The only remaining action is filling the form
-> (§1) and driving user acquisition for the 60%-weight user-metric score (§5).
+> API-key call. Public URL is deployed. Public repo created under Whyme-Labs and pushed.
+> Form submitted by owner. Remaining: driving user acquisition for the 60%-weight
+> user-metric score (§5).
 
 ## 1. Submission form fields (报名入口: https://infinisynapse.cn/contest/vibe-coding/register)
 
@@ -15,7 +16,7 @@
 | 应用简介 + 使用场景 (Intro + use scenario) | See §2 |
 | 作品地址 (Public URL) | **https://dataforngo-lab.swmengappdev.workers.dev** |
 | InfiniSynapse API 集成说明 (Integration description) | See §3 |
-| 代码仓库 (Repo, optional) | `contest-app/` in this workspace |
+| 代码仓库 (Repo) | `https://github.com/Whyme-Labs/dataforngo-lab` |
 | 使用截图 (Screenshots) | `contest-app/screenshot-allow.png`, `screenshot-kanon-block.png`, `screenshot-consent-block.png` |
 
 ## 2. App intro + use scenario (English; contest is CN — provide ZH version at submit)
@@ -84,7 +85,8 @@ All paths tested live at the public URL via real Chrome:
 - [x] **Create API Key** `sk-6a57…ad6d` in the `.cn` console (`/ai/apikey`) — done via browser.
 - [x] `wrangler secret put INFINI_API_KEY` set; deployed; **live call verified** (returns `createdVia:"api_key"`).
 - [x] Public URL live: https://dataforngo-lab.swmengappdev.workers.dev (insight + "Generate narration (Infini)" → briefing verified in real Chrome).
-- [ ] **Submit** at https://infinisynapse.cn/contest/vibe-coding/register (copy §1–§3).
+- [x] **Public GitHub repo created + pushed**: https://github.com/Whyme-Labs/dataforngo-lab (MIT, README, .gitignore, .dev.vars.example; no secrets).
+- [x] **Submit** at https://infinisynapse.cn/contest/vibe-coding/register — completed by owner (2026-07-16).
 
 **Optional polish:**
 - [ ] (Optional) Create a `data_source` from the NGO CSV and set `INFINI_DATA_SOURCE` for
