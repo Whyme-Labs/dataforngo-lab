@@ -1,0 +1,17 @@
+{
+  "skill_id": "youth_skills_impact",
+  "version": "1.0.0",
+  "domain": "ngo",
+  "goal": "Predict + improve program completion per (age_band, program)",
+  "inputs": ["programs.csv", "beneficiaries.csv"],
+  "phases": [
+    { "name": "diagnose", "allowed_models": ["rules_completion", "seg_mean"], "params": {} },
+    { "name": "propose", "allowed_models": ["monte_carlo"], "params": { "max_leverage": 0.25 } },
+    { "name": "validate", "allowed_models": ["rules_completion"], "params": { "holdout_min_n": 40 } },
+    { "name": "simulate", "allowed_models": ["monte_carlo"], "params": {} },
+    { "name": "evaluate", "allowed_models": ["dsl_valuation"], "params": {} }
+  ],
+  "constraints": { "holdout_min_n": 40, "require_ci": true, "max_leverage": 0.25, "min_confidence": 0.6 },
+  "required_outputs": ["insight_card", "report.md"],
+  "narrative_template": "For {segment}, completion is {value}..."
+}

@@ -1,0 +1,13 @@
+node_modules/
+.wrangler/
+dist/
+engine-core/target/
+__pycache__/
+*.pyc
+.pytest_cache/
+.env
+*.log
+.DS_Store
+.dev.vars
+# Heavy-backend model cache (re-trained fresh at startup; not committed)
+heavy-backend/artifacts/

@@ -1,0 +1,386 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>DataForNGO Lab — Insight Engine</title>
+<style>
+  :root { color-scheme: dark; --bg:#0e1116; --card:#171c24; --line:#2a313c; --txt:#e6e9ef; --mut:#9aa4b2; --acc:#6ea8fe; --good:#4ade80; --warn:#fbbf24; }
+  * { box-sizing: border-box; }
+  body { margin:0; font:15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif; background:var(--bg); color:var(--txt); }
+  header { padding:20px 24px; border-bottom:1px solid var(--line); }
+  h1 { font-size:18px; margin:0; }
+  .sub { color:var(--mut); font-size:13px; margin-top:4px; }
+  main { max-width:880px; margin:0 auto; padding:24px; }
+  .row { display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin-bottom:14px; }
+  label { color:var(--mut); font-size:13px; }
+  input[type=text], select, textarea { background:var(--card); color:var(--txt); border:1px solid var(--line); border-radius:8px; padding:8px 10px; font:inherit; }
+  input[type=text] { flex:1; min-width:280px; }
+  button { background:var(--acc); color:#08111f; border:0; border-radius:8px; padding:9px 16px; font-weight:600; cursor:pointer; }
+  button.ghost { background:transparent; color:var(--txt); border:1px solid var(--line); }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px; margin-bottom:16px; }
+  .headline { font-size:16px; font-weight:600; }
+  .pill { display:inline-block; font-size:11px; padding:2px 8px; border-radius:999px; border:1px solid var(--line); color:var(--mut); margin-left:6px; }
+  .pending { color:var(--warn); border-color:var(--warn); }
+  details { background:#11161d; border:1px solid var(--line); border-radius:8px; padding:8px 10px; margin:6px 0; }
+  summary { cursor:pointer; font-weight:600; }
+  .meta { color:var(--mut); font-size:12px; margin:4px 0; }
+  .narr { color:var(--txt); margin:6px 0; }
+  .ev { color:var(--mut); font-size:12px; }
+  .gate { margin-top:8px; }
+  .gate button { padding:5px 12px; font-size:13px; }
+  .approved { color:var(--good); border-color:var(--good); }
+  .blocked { color:#f87171; }
+  .gov-banner { padding:10px 12px; border-radius:8px; font-weight:600; margin:10px 0; }
+  .gov-allow { background:rgba(74,222,128,.12); color:var(--good); border:1px solid var(--good); }
+  .gov-block { background:rgba(248,113,113,.12); color:#f87171; border:1px solid #f87171; }
+  .chk { display:flex; gap:10px; align-items:flex-start; padding:8px 0; border-top:1px solid var(--line); }
+  .chk-status { font-size:11px; padding:2px 8px; border-radius:999px; border:1px solid var(--line); white-space:nowrap; }
+  .s-pass { color:var(--good); border-color:var(--good); }
+  .s-warn { color:var(--warn); border-color:var(--warn); }
+  .s-fail { color:#f87171; border-color:#f87171; }
+  .chk-detail { color:var(--mut); font-size:13px; }
+  .chk-detail b { color:var(--txt); }
+  code { background:#0b0e13; padding:1px 5px; border-radius:4px; }
+  .muted { color:var(--mut); }
+</style>
+</head>
+<body>
+<header>
+  <h1>DataForNGO Lab</h1>
+  <div class="sub">Insight Engine — the loop diagnoses, simulates, and proposes. You approve. (InfiniSynapse contest entry)</div>
+</header>
+<main>
+  <div class="card">
+    <div class="row">
+      <label>Question</label>
+      <input id="q" type="text" value="Why is this segment underperforming and what should we change?" />
+    </div>
+    <div class="row">
+      <label>Segment</label>
+      <select id="seg">
+        <option>25-40|Food Aid</option>
+        <option>18-24|Youth Skills</option>
+        <option>60+|Elderly Care</option>
+        <option>41-59|Pilot Micro</option>
+      </select>
+      <label class="muted" style="margin-left:8px"><input type="checkbox" id="revoke" /> Revoke consent (simulate PDPA block)</label>
+      <label class="muted">Optional data</label>
+      <input id="files" type="file" accept=".csv" multiple />
+      <button id="run">Run insight</button>
+      <button id="sample" class="ghost">Use sample data</button>
+    </div>
+    <div class="muted" id="status"></div>
+  </div>
+
+  <div id="out"></div>
+
+  <div class="card" id="narr-card" style="display:none">
+    <div class="row" style="justify-content:space-between">
+      <div>
+        <span class="headline">LLM Narration</span>
+        <span class="muted" style="font-size:12px"> — InfiniSynapse research + plain-language explanation, GOVERN-gated (no PII leaves the engine).</span>
+      </div>
+      <button id="narrate">Generate narration (Infini)</button>
+    </div>
+    <div id="narr-status" class="muted" style="margin-top:6px"></div>
+    <div id="narration" class="narr" style="margin-top:8px; white-space:pre-wrap"></div>
+  </div>
+
+  <div class="card">
+    <div class="row" style="justify-content:space-between">
+      <div>
+        <span class="headline">Learned Playbook</span>
+        <span class="pill" id="pbver">v1</span>
+        <span class="muted" style="font-size:12px"> — the moat: human-approved recommendations, versioned + audited, reused across orgs.</span>
+      </div>
+      <button id="reset" class="ghost">Reset playbook</button>
+    </div>
+    <div id="pbentries" class="muted" style="margin-top:8px">No approved entries yet. Run an insight, then approve its recommendation.</div>
+    <details id="pbauditwrap" style="margin-top:10px; display:none">
+      <summary>Audit log</summary>
+      <div id="pbaudit" class="ev"></div>
+    </details>
+  </div>
+
+  <div class="card">
+    <div class="row"><label>GOVERN gate — paste text to scan for PII before any external call</label></div>
+    <textarea id="pii" rows="3" style="width:100%" placeholder="e.g. Contact Siti at siti@example.com or 0123456789, IC S8812345T"></textarea>
+    <div class="row" style="margin-top:8px">
+      <button id="scan" class="ghost">Scan PII</button>
+      <span id="scanres" class="muted"></span>
+    </div>
+  </div>
+</main>
+
+<script>
+const $ = (id) => document.getElementById(id);
+
+function parseCsv(text) {
+  const lines = text.trim().split(/\r?\n/);
+  const hdr = lines[0].split(",").map(s => s.trim());
+  return lines.slice(1).map(l => {
+    const cells = l.split(",");
+    const o = {};
+    hdr.forEach((h, i) => { o[h] = (cells[i] ?? "").trim(); });
+    return o;
+  });
+}
+
+async function getData() {
+  const files = $("files").files;
+  if (!files.length) return null;
+  let beneficiaries = [], programs = [];
+  for (const f of files) {
+    const txt = await f.text();
+    const rows = parseCsv(txt);
+    if (/benefici/i.test(f.name)) beneficiaries = rows.map(r => ({ program_id: r.program_id, age_band: r.age_band, completed: parseFloat(r.completed), enrolled_date: r.enrolled_date||"", outcome_notes: r.outcome_notes||"" }));
+    if (/program/i.test(f.name)) programs = rows.map(r => ({ program_id: r.program_id, program_name: r.program_name, age_band: r.age_band, start_date: r.start_date||"", end_date: r.end_date||"", target_n: parseInt(r.target_n||"0",10) }));
+  }
+  return { beneficiaries, programs };
+}
+
+// Remembers the last query so "Approve" re-sends the same segment/data.
+let lastBody = null;
+// Remembers the last rendered card so "Generate narration" can send it to Infini.
+let lastCard = null;
+
+function renderNode(n, depth) {
+  const det = document.createElement("details");
+  det.open = depth < 1;
+  const sum = document.createElement("summary");
+  const kind = document.createElement("span");
+  kind.textContent = `[${n.kind}] `;
+  sum.appendChild(kind);
+  sum.appendChild(document.createTextNode(n.label + "  "));
+  const v = document.createElement("span");
+  v.className = "muted";
+  if (n.id === "n-evaluate" || n.kind === "how") {
+    v.textContent = `~${n.value.toFixed(0)} extra completions  (95% CI ${n.ci[0].toFixed(0)}–${n.ci[1].toFixed(0)})`;
+  } else {
+    v.textContent = `value=${(n.value*100).toFixed(0)}%  ci=[${(n.ci[0]*100).toFixed(0)}%, ${(n.ci[1]*100).toFixed(0)}%]`;
+  }
+  sum.appendChild(v);
+  if (n.model_used) { const m=document.createElement("span"); m.className="pill"; m.textContent=n.model_used; sum.appendChild(m); }
+  if (n.approval && n.approval !== "null") {
+    const a=document.createElement("span");
+    a.className = "pill " + (n.approval==="approved" ? "approved" : n.approval==="pending" ? "pending" : "");
+    a.textContent="approval: "+n.approval; sum.appendChild(a);
+  }
+  det.appendChild(sum);
+
+  if (n.narrative) { const p=document.createElement("div"); p.className="narr"; p.textContent=n.narrative; det.appendChild(p); }
+  if (n.evidence && n.evidence.length) { const e=document.createElement("div"); e.className="ev"; e.textContent="evidence: "+n.evidence.join(" · "); det.appendChild(e); }
+  // The propose node's approval is server-side: approving evolves the playbook.
+  if (n.approval === "pending") {
+    const gate = document.createElement("div"); gate.className="gate";
+    const yes=document.createElement("button"); yes.textContent="Approve → evolve playbook";
+    yes.onclick=()=>approveRecommendation(yes);
+    const no=document.createElement("button"); no.className="ghost"; no.textContent="Reject"; no.onclick=()=>{ n.approval="rejected"; no.textContent="Rejected"; yes.disabled=true; };
+    gate.appendChild(yes); gate.appendChild(no);
+    det.appendChild(gate);
+  }
+  (n.children||[]).forEach(c => det.appendChild(renderNode(c, depth+1)));
+  return det;
+}
+
+function renderCard(card) {
+  lastCard = card;
+  $("narr-card").style.display = "block";
+  $("narration").textContent = "";
+  $("narr-status").textContent = "";
+  const out = $("out"); out.innerHTML = "";
+  const top = document.createElement("div"); top.className="card";
+  const h = document.createElement("div"); h.className="headline"; h.textContent = card.headline;
+  top.appendChild(h);
+  const meta = document.createElement("div"); meta.className="meta";
+  meta.textContent = `question: ${card.question}  ·  segment: ${card.segment}  ·  confidence [${(card.confidence[0]*100).toFixed(0)}%, ${(card.confidence[1]*100).toFixed(0)}%]  ·  approval: ${card.approval}  ·  playbook ${card.lineage.playbook_version}`;
+  top.appendChild(meta);
+  // Provenance: which model backend produced the estimates (ADR-0018).
+  const mb = (card.meta && card.meta.heavy_backend) || "in-edge (Rust/WASM)";
+  const prov = document.createElement("div"); prov.className="meta";
+  prov.style.color = (card.meta && card.meta.heavy_backend && card.meta.heavy_backend.startsWith("in-edge")) ? "var(--mut)" : "var(--ok,#2a9d8f)";
+  prov.textContent = `model backend: ${mb}`;
+  top.appendChild(prov);
+  out.appendChild(top);
+  (card.children||[]).forEach(c => out.appendChild(renderNode(c, 0)));
+  renderGovern(card);
+}
+
+// GOVERN / PDPA PrePublish panel (ADR-0017): shows the 3 checks, the consent
+// summary, and a PDPA-safe export button enabled only when the verdict allows.
+function renderGovern(card) {
+  const g = card.govern;
+  if (!g) return;
+  const wrap = document.createElement("div"); wrap.className = "card";
+  const head = document.createElement("div");
+  head.innerHTML = `<span class="headline">GOVERN — PDPA-safe PrePublish</span><span class="pill">segment n=${g.segment_n} · k=${g.k}</span>`;
+  wrap.appendChild(head);
+
+  const banner = document.createElement("div");
+  banner.className = "gov-banner " + (g.verdict === "allow" ? "gov-allow" : "gov-block");
+  banner.textContent = g.verdict === "allow"
+    ? "✓ Publish allowed — artifact is PDPA-compliant (k-anonymous, consented, PII redacted)."
+    : "✗ Publish blocked — a governance check failed. Resolve it, then re-run.";
+  wrap.appendChild(banner);
+
+  const cs = document.createElement("div"); cs.className = "meta";
+  const consent = lastBody && lastBody.consent;
+  if (consent === null) {
+    cs.innerHTML = `<span class="blocked">Consent: NONE supplied (simulated revoke) — purpose-limitation failed.</span>`;
+  } else if (consent === undefined) {
+    cs.textContent = "Consent: org default manifest (impact_reporting) — purpose-limitation satisfied.";
+  } else {
+    cs.textContent = `Consent: purpose='${consent.purpose}' · v${consent.version} · granted ${consent.granted_at} · ${consent.data_fields.length} fields · ${consent.permitted_grains.length} grains`;
+  }
+  wrap.appendChild(cs);
+
+  g.checks.forEach(chk => {
+    const row = document.createElement("div"); row.className = "chk";
+    const st = document.createElement("span"); st.className = "chk-status s-" + chk.status; st.textContent = chk.status;
+    const det = document.createElement("div"); det.className = "chk-detail";
+    det.innerHTML = `<b>${chk.name}</b><br>${chk.detail}`;
+    row.appendChild(st); row.appendChild(det);
+    wrap.appendChild(row);
+  });
+
+  const pub = document.createElement("button");
+  pub.textContent = "Publish (PDPA-safe export)";
+  pub.style.marginTop = "12px";
+  if (g.verdict !== "allow") { pub.disabled = true; pub.style.opacity = "0.5"; }
+  pub.onclick = () => downloadExport(card, g);
+  wrap.appendChild(pub);
+
+  $("out").appendChild(wrap);
+}
+
+function downloadExport(card, g) {
+  const exportObj = {
+    schema: "dataforngo.pdpa_export/v1",
+    generated_at: new Date().toISOString(),
+    verdict: g.verdict,
+    segment: card.segment,
+    segment_n: g.segment_n,
+    k: g.k,
+    consent: (lastBody && lastBody.consent === null) ? null : "org-default-manifest",
+    checks: g.checks,
+    redacted_card: g.redacted_card ? JSON.parse(g.redacted_card) : card,
+    audit: g.audit,
+  };
+  const blob = new Blob([JSON.stringify(exportObj, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = `pdpa-export-${card.segment.replace(/[^\w]+/g, "_")}.json`;
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+}
+
+async function approveRecommendation(btn) {
+  if (!lastBody) return;
+  if (btn) { btn.disabled = true; btn.textContent = "Approving…"; }
+  $("status").textContent = "Recording approval + evolving playbook…";
+  try {
+    const res = await fetch("/api/approve", { method:"POST", headers:{"content-type":"application/json"}, body: JSON.stringify(lastBody) });
+    const data = await res.json();
+    if (data.error) { $("status").textContent = "Error: "+data.error; if (btn){btn.disabled=false;btn.textContent="Approve → evolve playbook";} return; }
+    renderCard(data.card);
+    renderPlaybook(data.state);
+    $("status").textContent = `Approved. Playbook evolved to v${data.state.version}.`;
+  } catch(e) { $("status").textContent = "Error: "+e; if (btn){btn.disabled=false;btn.textContent="Approve → evolve playbook";} }
+}
+
+$("run").onclick = async () => {
+  $("status").textContent = "Running loop…";
+  try {
+    const extra = await getData();
+    const body = { question: $("q").value, segment: $("seg").value };
+    if ($("revoke").checked) body.consent = null;
+    if (extra) { body.beneficiaries = extra.beneficiaries; body.programs = extra.programs; }
+    lastBody = body;
+    const res = await fetch("/api/insight", { method:"POST", headers:{"content-type":"application/json"}, body: JSON.stringify(body) });
+    const card = await res.json();
+    if (card.error) { $("status").textContent = "Error: "+card.error; return; }
+    renderCard(card);
+    $("status").textContent = "Done.";
+  } catch(e) { $("status").textContent = "Error: "+e; }
+};
+
+function renderPlaybook(state) {
+  $("pbver").textContent = "v" + state.version;
+  const entries = Object.values(state.entries || {});
+  const box = $("pbentries");
+  if (!entries.length) {
+    box.className = "muted";
+    box.textContent = "No approved entries yet. Run an insight, then approve its recommendation.";
+  } else {
+    box.className = "";
+    box.innerHTML = entries.map(e =>
+      `<div style="padding:6px 0; border-top:1px solid var(--line)">
+        <b>${e.segment}</b> — approved lever <b>+${(e.recommended_lever*100).toFixed(0)} pp</b>
+        → projected ${(e.projected_completion*100).toFixed(0)}%, ~${e.additional_completions.toFixed(0)} extra completions
+        <span class="pill approved">v${e.playbook_version}</span>
+        <div class="ev">by ${e.approved_by} · ${new Date(e.approved_at).toLocaleString()} · holdout MAE ${e.holdout_mae.toFixed(3)} · ${e.run_id}</div>
+      </div>`).join("");
+  }
+  const audit = state.audit || [];
+  if (audit.length) {
+    $("pbauditwrap").style.display = "block";
+    $("pbaudit").innerHTML = audit.map(a =>
+      `v${a.version}: ${a.segment} +${(a.recommended_lever*100).toFixed(0)}pp · ${a.approved_by} · ${new Date(a.approved_at).toLocaleString()}`).join("<br>");
+  } else {
+    $("pbauditwrap").style.display = "none";
+  }
+}
+
+async function loadPlaybook() {
+  try { const res = await fetch("/api/playbook"); renderPlaybook(await res.json()); } catch(e) {}
+}
+
+$("reset").onclick = async () => {
+  $("status").textContent = "Resetting playbook…";
+  const res = await fetch("/api/reset", { method:"POST" });
+  renderPlaybook(await res.json());
+  $("status").textContent = "Playbook reset to v1.";
+};
+
+$("sample").onclick = () => { $("files").value=""; $("status").textContent = "Sample data will be used by the server."; };
+
+$("narrate").onclick = async () => {
+  if (!lastCard) return;
+  const btn = $("narrate"); btn.disabled = true; btn.textContent = "Generating…";
+  $("narr-status").textContent = "Sending skill-bounded prompt to InfiniSynapse (GOVERN PII gate first)…";
+  try {
+    const res = await fetch("/api/narrate", { method:"POST", headers:{"content-type":"application/json"}, body: JSON.stringify({ card: lastCard }) });
+    const r = await res.json();
+    if (r.disabled) {
+      $("narr-status").textContent = "LLM narration disabled — set the INFINI_API_KEY secret to enable.";
+      $("narration").textContent = "";
+    } else if (r.pii_blocked) {
+      $("narr-status").innerHTML = `<span class="blocked">GOVERN gate blocked the request — ${r.findings.length} PII match(es): ${r.findings.map(f=>f.kind).join(", ")}. No data sent to InfiniSynapse.</span>`;
+      $("narration").textContent = "";
+    } else if (r.error) {
+      $("narr-status").innerHTML = `<span class="blocked">Error: ${r.error}</span>`;
+      $("narration").textContent = "";
+    } else {
+      $("narr-status").textContent = "Narration generated by InfiniSynapse (within skill bounds).";
+      $("narration").textContent = r.narration;
+    }
+  } catch(e) {
+    $("narr-status").textContent = "Error: " + e;
+  } finally {
+    btn.disabled = false; btn.textContent = "Generate narration (Infini)";
+  }
+};
+
+loadPlaybook();
+
+$("scan").onclick = async () => {
+  const res = await fetch("/api/scan", { method:"POST", headers:{"content-type":"application/json"}, body: JSON.stringify({ text: $("pii").value }) });
+  const r = await res.json();
+  $("scanres").innerHTML = r.blocked
+    ? `<span class="blocked">Blocked — ${r.findings.length} PII match(es): ${r.findings.map(f=>f.kind).join(", ")}</span>`
+    : `<span class="approved">Clear — no direct identifiers detected.</span>`;
+};
+</script>
+</body>
+</html>

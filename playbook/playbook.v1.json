@@ -1,0 +1,18 @@
+{
+  "playbook_version": "1.0.0",
+  "note": "Pre-loaded, network-learned across peer NGOs (illustrative seed). With ADR-0012 this evolves and persists, gated by human approval.",
+  "segments": {
+    "18-24|Youth Skills": {
+      "baseline_completion": 0.75,
+      "levers": [{ "name": "+2 sessions/week", "lift": 0.11, "ci": [0.06, 0.16] }]
+    },
+    "25-40|Food Aid": {
+      "baseline_completion": 0.45,
+      "levers": []
+    },
+    "60+|Elderly Care": {
+      "baseline_completion": 0.6,
+      "levers": []
+    }
+  }
+}

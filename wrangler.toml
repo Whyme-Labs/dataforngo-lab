@@ -1,0 +1,30 @@
+name = "dataforngo-lab"
+main = "worker/src/index.ts"
+compatibility_date = "2025-06-01"
+workers_dev = true
+account_id = "1e0170aaabc90ecf5f466128d1f0466a"
+
+[assets]
+directory = "public"
+binding = "ASSETS"
+
+# Learned playbook store (the moat) — single global Durable Object, SQLite-backed
+# so it runs on the Workers free plan.
+[[durable_objects.bindings]]
+name = "PLAYBOOK"
+class_name = "PlaybookStore"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["PlaybookStore"]
+
+# InfiniSynapse Server API (ADR-0002/0008/0016). The key is a SECRET — set with
+# `wrangler secret put INFINI_API_KEY`. base_url is a plain var (overseas default).
+[vars]
+INFINI_BASE_URL = "https://app.infinisynapse.cn"
+# Set the registered data_source id (from the NGO CSV in InfiniSynapse console) as a plain var.
+INFINI_DATA_SOURCE = ""
+# Heavy Python model backend (ADR-0018). Empty by default → the Worker runs the
+# in-edge WASM estimates only. Set to a reachable URL (e.g. the heavy-backend
+# service) to dispatch causal/ML estimates. Local dev uses .dev.vars override.
+HEAVY_BACKEND_URL = ""

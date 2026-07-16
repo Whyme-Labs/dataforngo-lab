@@ -1,0 +1,19 @@
+# Copy this file to `.dev.vars` for local development (`wrangler dev`).
+# `.dev.vars` is gitignored and must NEVER be committed.
+# Real secrets are set with `wrangler secret put ...` for production.
+
+# InfiniSynapse Server API key (Bearer token). Get it from the .cn console
+# (/ai/apikey) and set it as a SECRET for deploy:
+#   wrangler secret put INFINI_API_KEY
+# For local dev you may paste it here, but do NOT commit this file.
+INFINI_API_KEY=
+
+# InfiniSynapse base URL (overseas production console).
+INFINI_BASE_URL=https://app.infinisynapse.cn
+
+# Optional: a registered data_source id from the InfiniSynapse console, attached
+# as databaseIds to give the model richer grounding. Narration works without it.
+INFINI_DATA_SOURCE=
+
+# Optional: heavy Python backend (causal/ML estimates). Empty = in-edge WASM only.
+HEAVY_BACKEND_URL=http://localhost:8000

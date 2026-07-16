@@ -1,0 +1,16 @@
+{
+  "name": "dataforngo-lab",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build:wasm": "cd engine-core && cargo build --release --target wasm32-unknown-unknown && cp target/wasm32-unknown-unknown/release/engine_core.wasm ../worker/engine_core.wasm",
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "^4.110.0",
+    "typescript": "^5.5.4",
+    "@cloudflare/workers-types": "^4.20240701.0"
+  }
+}

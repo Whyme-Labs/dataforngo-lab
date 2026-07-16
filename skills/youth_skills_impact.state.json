@@ -1,0 +1,12 @@
+{
+  "base_params": { "base_completion": 0.6 },
+  "learned_adjustments": {
+    "18-24|Youth Skills": 0.0,
+    "25-40|Food Aid": 0.0,
+    "60+|Elderly Care": 0.0
+  },
+  "bounds": { "floor": -0.3, "ceil": 0.3 },
+  "version": "1.0.0",
+  "trained_on": "2026-07-15",
+  "holdout_mae": 0.08
+}
